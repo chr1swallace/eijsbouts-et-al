@@ -305,13 +305,13 @@ propcov[,thr:=thr*100]
 ggplot(propcov,aes(x=bl,y=mppc.prop*100,col=expt2,fill=factor(thr))) +
 geom_boxplot(outlier.size=0.5) +
 scale_fill_grey("% summed MPPC recovered",start=0.9,end=0.1) +
-facet_grid(expt2~.) +
+facet_grid(.~expt2) +
 labs(x="Length of run (binned)",y="% fragments included") +
 guides(fill = guide_legend(nrow = 1),#fill = guide_legend(reverse=TRUE),
 colour=FALSE) +
 theme(legend.position="bottom") + background_grid()
 
-ggsave(file.path(d,"../figures/run-coverage.pdf"),width=8,height=8)
+ggsave(file.path(d,"../figures/run-coverage.pdf"),width=8,height=4)
 
 f <- function(thr) {
     yt <- unique(y[mppc.el>=block_length * thr & block_length>2,],by=c("expt2","expt","baitID","block"))
@@ -325,13 +325,13 @@ propcov[,thr:=thr*100]
 ggplot(propcov,aes(x=bl,y=100*mppc.cov,col=expt2,fill=factor(thr))) +
 geom_boxplot(outlier.size=0.5) +
 scale_fill_grey("% fragments included",start=0.9,end=0.1) +
-facet_grid(expt2~.) +
+facet_grid(.~expt2) +
 labs(x="Length of run (binned)",y="% summed MPPC recovered") +
 guides(fill = guide_legend(nrow = 1),#fill = guide_legend(reverse=TRUE),
 colour=FALSE) +
 theme(legend.position="bottom") + background_grid()
 
-ggsave(file.path(d,"../figures/run-coverage-sw.pdf"),width=8,height=8)
+ggsave(file.path(d,"../figures/run-coverage-sw.pdf"),width=8,height=4)
 
 
 

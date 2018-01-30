@@ -20,6 +20,8 @@ for(i in seq_along(files)) {
     nm <- names(files)[i]
     of <- file.path(d,"../derived", paste0("suppdata-",nm,".csv"))
     ofz <- file.path(d,"../derived", paste0("suppdata-",nm,".csv.gz"))
+    if(file.exists(of)) unlink(of)
+    if(file.exists(ofz)) unlink(ofz)
     if(file.exists(of) || file.exists(ofz)) {
         message("\n\nskipping ",nm,": already exists ",of)
         next
@@ -36,15 +38,29 @@ for(i in seq_along(files)) {
     x[,maxcor:=pmax(corr_5v5,corr_10v10)]
     use <- which(x$maxcor>0.75)
     if("score" %in% names(x)) {
-        raw <- x[use,.(baitID,preyID,N,residual,mppc,beta.post,score,B,T)]
+        raw <- x[use,.(baitID,preyID,N,residual,mppc,beta.post,score)]
         setnames(raw,"score","chicago")
     } else {
         (load(file=file.path(d,"../derived", paste0(nm,"-chicago.RData"))))
         raw <- x[use,.(baitID,preyID,N,residual,mppc,beta.post)]
         raw <- merge(raw,chic,by=c("baitID","preyID"))
     }
+    maxchic <- raw[,max(chicago),by="baitID"]
+    maxchic <- maxchic[V1>=5,]
+    raw <- raw[baitID %in% maxchic$baitID,]
     message("writing to ",of)
     fwrite(raw,file=of)
-    message("zipping")
-    system(paste("gzip",of))
+    ## message("zipping")
+    ## system(paste("gzip",of))
 }
+
+(load(file.path(d,"b2gene.RData")))
+head(int.genes)
+fwrite(int.genes,file=file.path(d,"../derived", paste0("bait2gene.csv")))
+
+d2 <- "/mrc-bsu/scratch/cew54/peaky/summary/derived"
+(load(file.path(d2,"hind-position.RData"))); hind[,hindID:=as.integer(hindID)]
+head(hind)
+fwrite(hind,file=file.path(d,"../derived", paste0("hind-positions.csv")))
+
+system(paste0("cd ",d,"/../derived && tar zcvf supp-data.tgz bait2gene.csv hind-positions.csv suppdata-*.csv"))
