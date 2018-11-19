@@ -1,3 +1,4 @@
+d <- "/mrc-bsu/scratch/cew54/peaky/summary/derived"
 library(data.table)
 addpositions <- function(x) {
     (load(file.path(d,"hind-position.RData")))
@@ -48,16 +49,22 @@ theme_set(cur %+replace%
                 ##                 panel.grid.major = element_line(colour = "grey90", size = 0.2))
                 ))
 
-title <- c("actprom"="Promoter capture, activated",
-           actval="Validation, activated",
-           nonprom="Promoter capture, non-activated",
-           nonval="Validation, non-activated")
-title.pv <- c(actprom="Promoter Capture",
-              actval="Validation",
-              nonprom="Promoter Capture",
-              nonval="Validation")
-title.ab <- c(actprom="Promoter, act",
-              actval="Validation, act",
-              nonprom="Promoter, non",
-              nonval="Validation, non")
+title <- c("aCD4pchic"="Promoter capture, activated",
+           aCD4val="Validation, activated",
+           nCD4pchic="Promoter capture, non-activated",
+           nCD4val="Validation, non-activated")
+title.pv <- c(aCD4pchic="Promoter Capture",
+              aCD4val="Validation",
+              nCD4pchic="Promoter Capture",
+              nCD4val="Validation")
+title.ab <- c(aCD4pchic="Promoter, act",
+              aCD4val="Validation, act",
+              nCD4pchic="Promoter, non",
+              nCD4val="Validation, non")
 o <- c(3,1,4,2)
+
+addtitles <- function(x) {
+    x[,expt:=factor(title.ab[experiment],levels=title.ab[o])]
+    x[,expt2:=factor(title.pv[experiment])]
+    x
+}

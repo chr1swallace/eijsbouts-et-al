@@ -1,18 +1,18 @@
 library(data.table)
 source("~/Projects/peaky/common.R")
 
-d <- "/scratch/wallace/peaky/derived"
-files <- list.files(d,pattern="raw.RData")
+d <- "~/bsu/peaky/pky"
+files <- list.files(d,pattern="BTS.RData",recursive=TRUE)
 message("files found: ",length(files))
 print(files)
 
 DATA <- vector("list",length(files))
-names(DATA) <- sub("-raw.RData","",files)
+names(DATA) <- dirname(files)
 for(i in seq_along(files)) {
     f <- files[i]
     message("loading ",f)
     (load(file.path(d,f)))
-    DATA[[i]] <- raw$residual
+    DATA[[i]] <- BTS$residual
 }
 
 message("plotting")
@@ -51,8 +51,8 @@ size=0.8) +
 facet_wrap(~ti) +
 #background_grid() +
 #scale_colour_manual("Sign of residual",values=c("positive"="red", "negative"="black")) +
-scale_x_continuous("Expected quantile",limits=c(-8,8),breaks=seq(-8,8,by=4)) +
-scale_y_continuous("Observed quantile",limits=c(-8,8),breaks=seq(-8,8,by=4)) +
+scale_x_continuous("Expected quantile",limits=c(-6,6),breaks=seq(-6,6,by=3)) +
+scale_y_continuous("Observed quantile",limits=c(-6,6),breaks=seq(-6,6,by=3)) +
 theme(legend.position="bottom")
 
 ggsave(file.path(d,"../figures","NB-residuals-qqplots.pdf"),

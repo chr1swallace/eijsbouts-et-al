@@ -1,16 +1,15 @@
-source("~/Projects/peaky/common.R")
+source("~/Projects/peaky/common-v2.R")
 source("~/Projects/peaky/viz.R")
                 #plotone(xb,zoom=TODO[[g]]$zooms[[i]])
 ## source("~/Projects/peaky/extract-mppc-credsets.R")
 library(magrittr)
-d <- "/mrc-bsu/scratch/cew54/peaky/summary/derived"
+d <- "/mrc-bsu/scratch/cew54/peaky"
 
-
-(load(file.path(d,"b2g.RData")))
+(load(file.path(d,"annot","b2g.RData")))
 head(b2g)
 baits <- b2g$baitID
 
-(load(file.path(d,"hind-position.RData")))
+(load(file.path(d,"annot","hind-position.RData")))
 hind[,hindID:=as.integer(hindID)]
 ## (load(file.path(d,"rnaseq.RData")))
 ## head(rnaseq)
@@ -71,7 +70,7 @@ TODO <- list(## "AHR"= list(b=666461,NAME="AHR",cell="act",
              FYN=list(b=643601,NAME="FYN",cell="non"),
              ## CD6=list(b=120463,NAME="CD6",cell="act",zooms=list(all=c(-2e+5,6e+5))),
              PTPN4=list(b=365957,NAME="PTPN4",cell="act",zooms=list(all=c(-2e+5,7e+5))),
-             ARRDC3=list(b=583213,NAME="ARRDC3",cell="act"),
+             ## ARRDC3=list(b=583213,NAME="ARRDC3",cell="act"),
              PCF11=list(b=125742,NAME="PCF11",cell="act",zooms=list(all=c(-5e+5,5e+5))),
              FAM53B=list(b=100122,NAME="FAM53B",cell="act"),
              JADE2=list(b=596929,NAME="JADE2",cell="act"),
@@ -92,7 +91,7 @@ TODO <- list(## "AHR"= list(b=666461,NAME="AHR",cell="act",
 
 ##' NUMBERS
 ##' 
-(load(file.path(d,"numbers.RData")))
+(load(file.path(d,"analysis","numbers.RData")))
 z <- dblockdetail
 uz <- z[,.(length=unique(block_length),sum.mppc=sum(mppc)),by=c("baitID","block","expt")]
 uz <- merge(uz,b2g[,.(baitID,gene,biotype)],by="baitID",allow.cartesian = TRUE)
@@ -104,21 +103,58 @@ uz[gene=="ETS1" & expt=="Promoter, act", .(sum(length), sum(sum.mppc))]
 uz[gene=="AC009505.2" & expt=="Promoter, non", .(sum(length), sum(sum.mppc))]
 subset(uz,gene=="AC009505.2")
 
+## number of fragments per cluster for ETS1
+CELL <- "act"
+g <- "ETS1"
+## (load(file.path(d,paste0(CELL,"prom","-joined.RData"))))
+(load(file.path(d,"analysis",paste0(substr(CELL,1,1),"CD4pchic.RData"))))
+b <- TODO[[g]]$b
+NAME <- TODO[[g]]$NAME
+             
+OFFSET <- offset <- unique((b2g[baitID==b,]$baitStart + b2g[baitID==b,]$baitEnd)/2) 
+CHR <- chr <- as.character(unique(b2g[baitID==b,]$baitChr))
+xb <- xbi <- data[baitID==b,]
+##xb <- merge(xb,cs[expt==paste0("Promoter, ",CELL),],by=c("baitID","preyID"),all.x=TRUE)
+xb <- addstartend(xb)
+REF <- gr <- GRanges(seq=Rle(rep(chr,nrow(xb))),
+                     IRanges(start=xb$dist+offset,width=4000))
+FROM=min(xb$dist)+offset
+TO=max(xb$dist)+offset
+
+#genomics <- load.genomics(CELL)
+#tracks <- lapply(genomics,make.dt)
+## rna <- load.stranded(CELL,CHR)
+## peaks <- load.peaks(CELL,CHR,FROM,TO)
+genes <- getgenes(CHR,FROM,TO,OFFSET,AC009505.2 = g=="AC009505.2")
+## chromhmm <- load.chromhmm(CELL,CHR,FROM,TO)
+
+xb[,cumc:=cumsum(mppc)]
+ggplot(xb,aes(x=mid.prey,y=cumc)) + geom_path() + geom_path(aes(y=sqrt(mppc)*7),col="red") + xlim(1.275e+8,1.29e+8) + background_grid() + geom_hline(yintercept=1:7)
+xb[mid.prey>1.28e+8 & mid.prey<1.285e+08,]$cumc
+4.35305 - 2.43495
+
+## if(!file.exists(f)) {
+##     plotone(xb)
+##     ggsave(file.path(d,"../figures",paste0("ex-",NAME,"-",CELL,".pdf")),height=h,width=w)
+## }
+
+
 ## GLOBAL VARIABLES THAT WILL BE USED BY FUNCTIONS IN viz.R
 CELL="non"; g <- "AC009505.2"; i <- 1
 h <- 12; w <- 10
 for(CELL in c("non","act")) {
     message("CELL: ",CELL)
-    (load(file.path(d,paste0(CELL,"prom","-joined.RData"))))
-    for(g in names(TODO)) {
+    (load(file.path(d,"analysis",paste0(substr(CELL,1,1),"CD4pchic.RData"))))
+    ## (load(file.path(d,paste0(CELL,"prom","-joined.RData"))))
+    for(g in names(TODO)[7:11]) {
         message(CELL,"\t",g)
         if(TODO[[g]]$cell!=CELL)
             next
         b <- TODO[[g]]$b
         NAME <- TODO[[g]]$NAME
-        f <- file.path(d,"../figures",paste0("ex-",NAME,"-",CELL,".pdf"))
+        f <- file.path(d,"figures",paste0("ex-",NAME,"-",CELL,".pdf"))
         fz <- if("zooms" %in% names(TODO[[g]])) {
-                  file.path(d,"../figures",paste0("ex-",NAME,"-",CELL,"-zoom",names(TODO[[g]]$zoom),".pdf"))
+                  file.path(d,"figures",paste0("ex-",NAME,"-",CELL,"-zoom",names(TODO[[g]]$zoom),".pdf"))
               } else {
                   NULL
               }
@@ -127,7 +163,7 @@ for(CELL in c("non","act")) {
         
         OFFSET <- offset <- unique((b2g[baitID==b,]$baitStart + b2g[baitID==b,]$baitEnd)/2) 
         CHR <- chr <- as.character(unique(b2g[baitID==b,]$baitChr))
-        xb <- xbi <- x[baitID==b,]
+        xb <- xbi <- data[baitID==b,]
         ##xb <- merge(xb,cs[expt==paste0("Promoter, ",CELL),],by=c("baitID","preyID"),all.x=TRUE)
         xb <- addstartend(xb)
         REF <- gr <- GRanges(seq=Rle(rep(chr,nrow(xb))),
@@ -155,10 +191,10 @@ for(CELL in c("non","act")) {
                 ggsave(fz[i], height=h,width=w)
             }
         } else {
-            if(!file.exists(f)) {
+            ## if(!file.exists(f)) {
                 plotone(xb)
-                ggsave(file.path(d,"../figures",paste0("ex-",NAME,"-",CELL,".pdf")),height=h,width=w)
-            }
+                ggsave(file.path(d,"figures",paste0("ex-",NAME,"-",CELL,".pdf")),height=h,width=w)
+            ## }
         }
     }
 }
