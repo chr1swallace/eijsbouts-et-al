@@ -7,7 +7,7 @@ library(cowplot)
 library(stargazer)
 library(Hmisc)
 ## d <- "/scratch/wallace/peaky/derived"
-source("~/Projects/peaky/common-v2.R")
+source("~/Projects/eijsbouts-et-al/common-v2.R")
 d <- "/mrc-bsu/scratch/cew54/peaky"
 
 ##' make data
