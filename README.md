@@ -48,3 +48,12 @@ code to generate numbers, tables & figures for peaky paper all within the analys
 ./analysis/figures-examples.R ## figures 4,5
 ```
 
+## make supplementary data
+```{sh}
+rm ~/bsu/peaky/supp/*
+./suppdata.R
+gzip ~/bsu/peaky/supp/*.csv
+cd ~/bsu/peaky
+zip -r supp.zip supp
+
+```

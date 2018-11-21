@@ -64,18 +64,18 @@ TODO <- list(## "AHR"= list(b=666461,NAME="AHR",cell="act",
              ## "IL6ST" = list(b=571941,NAME="IL6ST",cell="act",
              ##                zooms=list(prox=c(-2e+5 - oia,2e+6 - oia))),
              "AC009505.2" = list(b=361840,NAME="AC0095052",cell="non",
-                                  zooms=list(all=c(-6e+5,8e+5))),
-             TNFAIP8 = list(b=592091,NAME="TNFAIP8",cell="non",zooms=list(all=c(-5e+5,5e+5))),
-             CLVS1 = list(b=724747,NAME="CLVS1",cell="non"),
-             FYN=list(b=643601,NAME="FYN",cell="non"),
-             ## CD6=list(b=120463,NAME="CD6",cell="act",zooms=list(all=c(-2e+5,6e+5))),
-             PTPN4=list(b=365957,NAME="PTPN4",cell="act",zooms=list(all=c(-2e+5,7e+5))),
-             ## ARRDC3=list(b=583213,NAME="ARRDC3",cell="act"),
-             PCF11=list(b=125742,NAME="PCF11",cell="act",zooms=list(all=c(-5e+5,5e+5))),
-             FAM53B=list(b=100122,NAME="FAM53B",cell="act"),
-             JADE2=list(b=596929,NAME="JADE2",cell="act"),
-             BCL2=list(b=315353,NAME="BCL2",cell="act"),
-             BOD1=list(b=608571,NAME="BOD1",cell="act")
+                                  zooms=list(all=c(-6e+5,8e+5)))
+             ## TNFAIP8 = list(b=592091,NAME="TNFAIP8",cell="non",zooms=list(all=c(-5e+5,5e+5))),
+             ## CLVS1 = list(b=724747,NAME="CLVS1",cell="non"),
+             ## FYN=list(b=643601,NAME="FYN",cell="non"),
+             ## ## CD6=list(b=120463,NAME="CD6",cell="act",zooms=list(all=c(-2e+5,6e+5))),
+             ## PTPN4=list(b=365957,NAME="PTPN4",cell="act",zooms=list(all=c(-2e+5,7e+5))),
+             ## ## ARRDC3=list(b=583213,NAME="ARRDC3",cell="act"),
+             ## PCF11=list(b=125742,NAME="PCF11",cell="act",zooms=list(all=c(-5e+5,5e+5))),
+             ## FAM53B=list(b=100122,NAME="FAM53B",cell="act"),
+             ## JADE2=list(b=596929,NAME="JADE2",cell="act"),
+             ## BCL2=list(b=315353,NAME="BCL2",cell="act"),
+             ## BOD1=list(b=608571,NAME="BOD1",cell="act")
              ## "ANKRD55" = list(b=572013,NAME="ANKRD55",cell="act",
              ##               zooms=list(prox=c(-2e+5,1e+6)))
              ## "INPP4B" = list(b=540390,NAME="INPP4B",
@@ -108,6 +108,8 @@ CELL <- "act"
 g <- "ETS1"
 ## (load(file.path(d,paste0(CELL,"prom","-joined.RData"))))
 (load(file.path(d,"analysis",paste0(substr(CELL,1,1),"CD4pchic.RData"))))
+## add residuals
+
 b <- TODO[[g]]$b
 NAME <- TODO[[g]]$NAME
              
@@ -138,6 +140,7 @@ xb[mid.prey>1.28e+8 & mid.prey<1.285e+08,]$cumc
 ##     ggsave(file.path(d,"../figures",paste0("ex-",NAME,"-",CELL,".pdf")),height=h,width=w)
 ## }
 
+library(data.table)
 
 ## GLOBAL VARIABLES THAT WILL BE USED BY FUNCTIONS IN viz.R
 CELL="non"; g <- "AC009505.2"; i <- 1
@@ -145,8 +148,10 @@ h <- 12; w <- 10
 for(CELL in c("non","act")) {
     message("CELL: ",CELL)
     (load(file.path(d,"analysis",paste0(substr(CELL,1,1),"CD4pchic.RData"))))
+    res <- fread(file.path("/home/cew54/bsu/peaky/supp",paste0("suppdata-cd4-",substr(CELL,1,1),"CD4pchic.csv.gz")))
     ## (load(file.path(d,paste0(CELL,"prom","-joined.RData"))))
-    for(g in names(TODO)[7:11]) {
+    data <- merge(data,res[,.(baitID,preyID,residual)],by=c("baitID","preyID"))
+    for(g in names(TODO)) {
         message(CELL,"\t",g)
         if(TODO[[g]]$cell!=CELL)
             next

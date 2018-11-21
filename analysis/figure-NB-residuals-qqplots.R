@@ -8,11 +8,13 @@ print(files)
 
 DATA <- vector("list",length(files))
 names(DATA) <- dirname(files)
+BINS <- DATA
 for(i in seq_along(files)) {
     f <- files[i]
     message("loading ",f)
     (load(file.path(d,f)))
     DATA[[i]] <- BTS$residual
+    BINS[[i]] <- BTS[,.(min=min(abs(dist)),max=max(abs(dist)),n=.N),by="dist.bin"]
 }
 
 message("plotting")
@@ -58,3 +60,15 @@ theme(legend.position="bottom")
 ggsave(file.path(d,"../figures","NB-residuals-qqplots.pdf"),
        height=8,width=8)
        
+message("table bins")
+library(Hmisc)
+library(magrittr)
+for(i in seq_along(BINS)) 
+    BINS[[i]]$ti <- title[[i]]
+bins <- rbindlist(BINS)[,.(dist.bin,min,max,n)]  %>% as.data.frame()
+rownames(bins) <- bins$dist.bin
+
+kk <- latex(bins, #[,.(min,max,n)],
+            booktabs=TRUE,
+            file=file.path(d,"../ptables/distbin-pre.tex"),
+            rgroup=title)

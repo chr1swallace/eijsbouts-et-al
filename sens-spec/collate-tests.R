@@ -22,6 +22,8 @@ for(d in dirs) {
 }
 
 head(x)
+save(x,file=file.path(od,"mppc.RData"))
+
 
 m <- melt(x,c("baitID","preyID"))
 
